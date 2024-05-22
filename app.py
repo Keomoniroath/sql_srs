@@ -1,7 +1,9 @@
 import duckdb
 import streamlit as st
 
+
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+
 
 with st.sidebar:
     theme = st.selectbox(
@@ -38,6 +40,7 @@ if query:
     nb_row_diff = result.shape[0] - solution_df.shape[0]
     if nb_row_diff != 0:
         st.write(f' {nb_row_diff} lignes de différence')
+
 
 
 tab2, tab3 = st.tabs(["Tables", "Solution"])
