@@ -11,7 +11,7 @@ con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=Fals
 data = {
     "theme": ["cross_joins", "cross_joins"],
     "exercise_name": ["beverages_and_food", "sizes_and_trademarks"],
-    "tables": [["beverages", "food_items"], "sizes_and_trademarks"],
+    "tables": [["beverages", "food_items"], ["sizes", "trademarks"]],
     "last_reviewed": ["1980-01-01", "1970-01-01"],
 }
 memory_state_df = pd.DataFrame(data)
