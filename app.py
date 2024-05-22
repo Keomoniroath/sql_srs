@@ -1,7 +1,7 @@
 import duckdb
 import streamlit as st
 import os
-import logging
+from datetime import date, timedelta
 
 if "data" not in os.listdir():
     os.mkdir("data")
@@ -10,6 +10,23 @@ if "exercises_sql_tables.duckdb" not in os.listdir("data"):
     exec(open("init_db.py").read())
 
 con = duckdb.connect(database="data/exercises_sql_tables.duckdb", read_only=False)
+
+
+def compare_user_query(q: str):
+    result = con.execute(q).df()
+    st.dataframe(result)
+    try:
+        result = result[solution_df.columns]
+        st.dataframe(result.compare(solution_df))
+        if result.compare(solution_df).shape == (0, 0):
+            st.write('Correct')
+            st.balloons()
+    except KeyError as e:
+        st.write('Le nombre de colonne est différent')
+    nb_row_diff = result.shape[0] - solution_df.shape[0]
+    if nb_row_diff != 0:
+        st.write(f' {nb_row_diff} lignes de différence')
+
 
 with st.sidebar:
     themes = con.execute("SELECT theme FROM memory_state").df()
@@ -39,18 +56,19 @@ st.header("enter your code:")
 query = st.text_area(label="votre code SQL ici", key="user_input")
 
 if query:
-    result = con.execute(query).df()
-    st.dataframe(result)
+    compare_user_query(query)
 
-    try:
-        result = result[solution_df.columns]
-        st.dataframe(result.compare(solution_df.columns))
-    except KeyError as e:
-        st.write('Le nombre de colonne est différent')
+for n_days in [2, 7, 14]:
+    if st.button(f"Revoir dans {n_days}"):
+        next_review = date.today() + timedelta(days=n_days)
+        con.execute(
+            f"UPDATE memory_state SET last_reviewed = '{next_review}' WHERE exercise_name = '{exercise_name}'"
+        )
+        st.rerun()
 
-    nb_row_diff = result.shape[0] - solution_df.shape[0]
-    if nb_row_diff != 0:
-        st.write(f' {nb_row_diff} lignes de différence')
+if st.button('Reset'):
+    con.execute("UPDATE memory_state SET last_reviewed = '1970-01-01'")
+    st.rerun()
 
 tab2, tab3 = st.tabs(["Tables", "Solution"])
 
